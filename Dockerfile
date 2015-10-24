@@ -1,11 +1,17 @@
-FROM centos:6.4
-MAINTAINER Thatcher Peskens <thatcher@koffiedik.net>
+FROM centos:centos6.6
+MAINTAINER Pavel Gribanov <rapthead@gmail.com>
 
-# install http
+# install epel
 RUN rpm -Uvh http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
 
+# install tools
+RUN yum -y install screen vim-enhanced unzip telnet wget git
+
+# install nginx
+RUN yum -y install nginx
+
 # install httpd
-RUN yum -y install httpd vim-enhanced bash-completion unzip
+RUN yum -y install nginx
 
 # install mysql
 RUN yum install -y mysql mysql-server
@@ -16,10 +22,6 @@ RUN service mysqld start
 # install php
 RUN yum install -y php php-mysql php-devel php-gd php-pecl-memcache php-pspell php-snmp php-xmlrpc php-xml
 
-# install supervisord
-RUN yum install -y python-pip && pip install "pip>=1.4,<1.5" --upgrade
-RUN pip install supervisor
-
 # install sshd
 RUN yum install -y openssh-server openssh-clients passwd
 
@@ -27,6 +29,8 @@ RUN ssh-keygen -q -N "" -t dsa -f /etc/ssh/ssh_host_dsa_key && ssh-keygen -q -N 
 RUN sed -ri 's/UsePAM yes/UsePAM no/g' /etc/ssh/sshd_config && echo 'root:changeme' | chpasswd
 
 ADD phpinfo.php /var/www/html/
-ADD supervisord.conf /etc/
+ADD http://www.1c-bitrix.ru/download/scripts/bitrixsetup.php /var/www/html/
+
+RUN service mysqld stop
+
 EXPOSE 22 80
-CMD ["supervisord", "-n"]
